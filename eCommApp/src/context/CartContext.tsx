@@ -1,4 +1,4 @@
-import React, { createContext, useState, ReactNode } from 'react';
+import React, { createContext, useState, useMemo, useCallback, ReactNode } from 'react';
 import { Product } from '../types';
 
 export interface CartItem extends Product {
@@ -16,7 +16,7 @@ export const CartContext = createContext<CartContextType | undefined>(undefined)
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
-    const addToCart = (product: Product) => {
+    const addToCart = useCallback((product: Product) => {
         setCartItems(prevItems => {
             const itemInCart = prevItems.find(item => item.id === product.id);
             if (itemInCart) {
@@ -27,14 +27,16 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 return [...prevItems, { ...product, quantity: 1 }];
             }
         });
-    };
+    }, []);
 
-    const clearCart = () => {
+    const clearCart = useCallback(() => {
         setCartItems([]);
-    };
+    }, []);
+
+    const value = useMemo(() => ({ cartItems, addToCart, clearCart }), [cartItems, addToCart, clearCart]);
 
     return (
-        <CartContext.Provider value={{ cartItems, addToCart, clearCart }}>
+        <CartContext.Provider value={value}>
             {children}
         </CartContext.Provider>
     );

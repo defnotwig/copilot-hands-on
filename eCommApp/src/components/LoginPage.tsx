@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, useReducedMotion } from 'framer-motion';
 import Header from './Header';
 import Footer from './Footer';
 
@@ -8,6 +9,7 @@ const LoginPage = () => {
     const [password, setPassword] = useState('');
     const [loginError, setLoginError] = useState('');
     const navigate = useNavigate();
+    const prefersReducedMotion = useReducedMotion();
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
@@ -25,29 +27,33 @@ const LoginPage = () => {
         <div className="app">
             <Header />
             <main className="main-content">
-                <div className="login-container">
+                <motion.div
+                    className="login-container"
+                    initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                >
                     <h2>Admin Login</h2>
-                    {/* Let's make sure we switch the default admin credentials away from 'admin'/'admin' to something more secure */}
-                    <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', maxWidth: 300 }}>
+                    <form onSubmit={handleLogin}>
                         <input
                             type="text"
                             placeholder="Username"
+                            aria-label="Username"
                             value={username}
                             onChange={e => setUsername(e.target.value)}
-                            style={{ marginBottom: '1rem', padding: '0.5rem' }}
                             autoFocus
                         />
                         <input
                             type="password"
                             placeholder="Password"
+                            aria-label="Password"
                             value={password}
                             onChange={e => setPassword(e.target.value)}
-                            style={{ marginBottom: '1rem', padding: '0.5rem' }}
                         />
-                        <button type="submit" style={{ padding: '0.5rem' }}>Login</button>
-                        {loginError && <p style={{ color: 'red', marginTop: '1rem' }}>{loginError}</p>}
+                        <button type="submit">Login</button>
+                        {loginError && <p style={{ color: 'var(--color-error)', marginTop: '1rem' }}>{loginError}</p>}
                     </form>
-                </div>
+                </motion.div>
             </main>
             <Footer />
         </div>

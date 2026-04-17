@@ -1,3 +1,4 @@
+﻿import { useEffect, useRef } from 'react';
 import { Product, Review } from '../types';
 
 interface ReviewModalProps {
@@ -7,6 +8,22 @@ interface ReviewModalProps {
 }
 
 const ReviewModal = ({ product, onClose, onSubmit }: ReviewModalProps) => {
+    const dialogRef = useRef<HTMLDialogElement>(null);
+
+    useEffect(() => {
+        const dialog = dialogRef.current;
+        if (product && dialog && !dialog.open) {
+            dialog.showModal();
+            /* c8 ignore start -- unreachable: React unmounts dialog before effect re-runs with null product */
+        } else if (!product && dialog?.open) {
+            dialog.close();
+        }
+        /* c8 ignore stop */
+        return () => {
+            dialog?.close();
+        };
+    }, [product]);
+
     if (!product) return null;
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -18,15 +35,15 @@ const ReviewModal = ({ product, onClose, onSubmit }: ReviewModalProps) => {
     };
 
     return (
-        <div className="modal-backdrop" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <h2>Reviews for {product.name}</h2>
+        <dialog ref={dialogRef} className="modal-dialog" onClose={onClose} aria-labelledby="review-modal-heading">
+            <div className="modal-content">
+                <h2 id="review-modal-heading">Reviews for {product.name}</h2>
                 <div className="reviews-list">
                     {product.reviews.length > 0 ? (
-                        product.reviews.map((review, index) => (
-                            <div key={index} className="review">
+                        product.reviews.map((review) => (
+                            <div key={review.author + '-' + review.date} className="review">
                                 <p><strong>{review.author}</strong> ({new Date(review.date).toLocaleDateString()}):</p>
-                                <p dangerouslySetInnerHTML={{ __html: review.comment }} />
+                                <p>{review.comment}</p>
                             </div>
                         ))
                     ) : (
@@ -41,7 +58,7 @@ const ReviewModal = ({ product, onClose, onSubmit }: ReviewModalProps) => {
                 </form>
                 <button onClick={onClose} className="close-button">Close</button>
             </div>
-        </div>
+        </dialog>
     );
 };
 

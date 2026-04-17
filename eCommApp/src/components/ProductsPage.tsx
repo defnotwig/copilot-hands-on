@@ -1,4 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Product, Review } from '../types';
 import Header from './Header';
 import Footer from './Footer';
@@ -10,6 +11,7 @@ const ProductsPage = () => {
     const [loading, setLoading] = useState(true);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const cartContext = useContext(CartContext);
+    const prefersReducedMotion = useReducedMotion();
 
     if (!cartContext) {
         throw new Error('CartContext must be used within a CartProvider');
@@ -73,17 +75,39 @@ const ProductsPage = () => {
             <Header />
             <main className="main-content">
                 <div className="products-container">
-                    <h2>Our Products</h2>
+                    <motion.h2
+                        initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                    >
+                        Our Products
+                    </motion.h2>
                     <div className="products-grid">
-                        {products.map((product) => (
-                            <div key={product.id || product.name} className="product-card">
+                        {products.map((product, index) => (
+                            <motion.div
+                                key={product.id || product.name}
+                                className="product-card"
+                                initial={prefersReducedMotion ? false : { opacity: 0, y: 24 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={prefersReducedMotion ? { duration: 0 } : {
+                                    duration: 0.5,
+                                    delay: Math.min(index * 0.1, 0.5),
+                                    ease: [0.16, 1, 0.3, 1],
+                                }}
+                            >
                                 {product.image && (
-                                    <img
-                                        src={`products/productImages/${product.image}`}
-                                        alt={product.name}
-                                        className="product-image"
+                                    <button
+                                        type="button"
+                                        className="product-image-btn"
                                         onClick={() => setSelectedProduct(product)}
-                                    />
+                                        aria-label={`View reviews for ${product.name}`}
+                                    >
+                                        <img
+                                            src={`products/productImages/${product.image}`}
+                                            alt={product.name}
+                                            className="product-image"
+                                        />
+                                    </button>
                                 )}
                                 <div className="product-info">
                                     <h3 className="product-name">{product.name}</h3>
@@ -99,7 +123,7 @@ const ProductsPage = () => {
                                         {product.inStock ? 'Add to Cart' : 'Out of Stock'}
                                     </button>
                                 </div>
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
                 </div>
